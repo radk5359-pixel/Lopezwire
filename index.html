@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUBG PING | WireGuard Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Arial', sans-serif;
+        }
+
+        body {
+            background: #0a0e1a;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Gaming Background Effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 255, 200, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 0, 200, 0.03) 0%, transparent 50%),
+                repeating-linear-gradient(45deg, rgba(255,255,255,0.01) 0px, rgba(255,255,255,0.01) 2px, transparent 2px, transparent 8px);
+            animation: bgMove 20s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes bgMove {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(10%, 10%) rotate(5deg); }
+        }
+
+        /* Scanline effect */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 1px, transparent 1px, transparent 3px);
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        .panel-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1400px;
+            background: rgba(10, 14, 30, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 255, 200, 0.15);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.8), inset 0 0 80px rgba(0,255,200,0.03);
+            transition: all 0.3s;
+        }
+
+        /* Header */
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(0,255,200,0.1);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            filter: drop-shadow(0 0 10px rgba(0,255,200,0.5));
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .panel-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #00ffc8, #00aaff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0,255,200,0.3);
+            letter-spacing: 2px;
+        }
+
+        .panel-title small {
+            font-size: 0.8rem;
+            background: rgba(0,255,200,0.15);
+            padding: 4px 12px;
+            border-radius: 20px;
+            -webkit-text-fill-color: #00ffc8;
+            margin-left: 10px;
+            font-weight: 400;
+            border: 1px solid rgba(0,255,200,0.2);
+        }
+
+        /* Login Overlay */
+        #loginOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(10px);
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        #loginOverlay.hidden {
+            display: none;
+        }
+
+        .login-box {
+            background: rgba(10, 14, 30, 0.95);
+            border: 1px solid rgba(0,255,200,0.2);
+            border-radius: 30px;
+            padding: 50px 40px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            text-align: center;
+        }
+
+        .login-box h2 {
+            color: #00ffc8;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .login-box .sub {
+            color: #8899bb;
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(0,255,200,0.2);
+            border-radius: 15px;
+            color: #fff;
+            font-size: 1.1rem;
+            outline: none;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .login-input:focus {
+            border-color: #00ffc8;
+            box-shadow: 0 0 30px rgba(0,255,200,0.1);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #00ffc8, #00aaff);
+            border: none;
+            border-radius: 15px;
+            color: #0a0e1a;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+        }
+
+        .login-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 40px rgba(0,255,200,0.3);
+        }
+
+        .login-error {
+            color: #ff3366;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            min-height: 30px;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-15px); }
+            40% { transform: translateX(15px); }
+            60% { transform: translateX(-10px); }
+            80% { transform: translateX(10px); }
+        }
+
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(20, 28, 50, 0.6);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(0,255,200,0.08);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            border-color: rgba(0,255,200,0.2);
+            box-shadow: 0 0 40px rgba(0,255,200,0.03);
+        }
+
+        .card-title {
+            color: #00ffc8;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 1px;
+        }
+
+        .card-title span {
+            opacity: 0.5;
+            font-weight: 300;
+        }
+
+        /* Form Elements */
+        select, input {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(0,255,200,0.15);
+            border-radius: 12px;
+            color: #c8d8ff;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+        }
+
+        select:focus, input:focus {
+            border-color: #00ffc8;
+            box-shadow: 0 0 20px rgba(0,255,200,0.05);
+        }
+
+        select option {
+            background: #0a0e1a;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00ffc8, #00aaff);
+            color: #0a0e1a;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,255,200,0.2);
+        }
+
+        .btn-danger {
+            background: rgba(255, 51, 102, 0.15);
+            color: #ff3366;
+            border: 1px solid rgba(255, 51, 102, 0.2);
+        }
+
+        .btn-danger:hover {
+            background: rgba(255, 51, 102, 0.25);
+        }
+
+        .btn-success {
+            background: rgba(0, 255, 200, 0.1);
+            color: #00ffc8;
+            border: 1px solid rgba(0, 255, 200, 0.2);
+        }
+
+        .btn-success:hover {
+            background: rgba(0, 255, 200, 0.2);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .config-output {
+            background: rgba(0,0,0,0.5);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid rgba(0,255,200,0.05);
+            max-height: 400px;
+            overflow: auto;
+            position: relative;
+        }
+
+        .config-output pre {
+            color: #a0c0ff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.6;
+        }
+
+        .config-output .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,255,200,0.1);
+            border: none;
+            color: #00ffc8;
+            padding: 5px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        /* History Table */
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .history-table th {
+            text-align: left;
+            color: #8899bb;
+            font-weight: 400;
+            font-size: 0.8rem;
+            padding: 10px 5px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            letter-spacing: 1px;
+        }
+
+        .history-table td {
+            padding: 12px 5px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            color: #c8d8ff;
+            font-size: 0.9rem;
+        }
+
+        .history-table .status {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-active {
+            background: #00ffc8;
+            box-shadow: 0 0 15px rgba(0,255,200,0.5);
+        }
+
+        .status-inactive {
+            background: #ff3366;
+        }
+
+        /* Settings Row */
+        .settings-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .settings-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .settings-row label {
+            color: #8899bb;
+            font-size: 0.8rem;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 45px;
+            height: 25px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .toggle-switch.active {
+            background: rgba(0,255,200,0.2);
+            border-color: #00ffc8;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 19px;
+            height: 19px;
+            background: #8899bb;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            left: 22px;
+            background: #00ffc8;
+            box-shadow: 0 0 20px rgba(0,255,200,0.3);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0,255,200,0.2);
+            border-radius: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .panel-container { padding: 15px; }
+            .panel-title { font-size: 1.5rem; }
+            .logo-icon { font-size: 1.8rem; }
+        }
+
+        .glow-text {
+            text-shadow: 0 0 20px rgba(0,255,200,0.1);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Login Overlay -->
+<div id="loginOverlay">
+    <div class="login-box">
+        <h2>🔐 PUBG PING</h2>
+        <p class="sub">WireGuard Panel • Gaming Edition</p>
+        <input type="password" id="loginInput" class="login-input" placeholder="رمز پنل را وارد کنید" autofocus>
+        <button class="login-btn" onclick="checkLogin()">ورود</button>
+        <div id="loginError" class="login-error"></div>
+    </div>
+</div>
+
+<!-- Main Panel -->
+<div class="panel-container" id="mainPanel" style="display:none;">
+    <!-- Header -->
+    <div class="panel-header">
+        <div class="logo-area">
+            <span class="logo-icon">🎮</span>
+            <span class="panel-title">PUBG PING <small>WireGuard</small></span>
+        </div>
+        <div style="display:flex; gap:15px; align-items:center;">
+            <span style="color:#8899bb; font-size:0.8rem;">🟢 Online</span>
+            <button class="btn btn-danger" style="padding:8px 16px; font-size:0.8rem;" onclick="logout()">خروج</button>
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="main-grid">
+        <!-- Left Column -->
+        <div>
+            <!-- Config Generator -->
+            <div class="card">
+                <div class="card-title">⚡ تولید کانفینگ <span>| Generate</span></div>
+                
+                <label style="color:#8899bb; font-size:0.8rem; display:block; margin-bottom:5px;">نام کانفینگ</label>
+                <input type="text" id="configName" placeholder="مثلا: PUBG-USA" value="MyConfig">
+
+                <label style="color:#8899bb; font-size:0.8rem; display:block; margin-bottom:5px;">کشور سرور</label>
+                <select id="countrySelect">
+                    <option value="🇺🇸 آمریکا|68.183.1">🇺🇸 آمریکا</option>
+                    <option value="🇩🇪 آلمان|68.183.2">🇩🇪 آلمان</option>
+                    <option value="🇹🇷 ترکیه|68.183.3">🇹🇷 ترکیه</option>
+                    <option value="🇴🇲 عمان|68.183.4">🇴🇲 عمان</option>
+                    <option value="🇬🇧 اینگلیس|68.183.5">🇬🇧 اینگلیس</option>
+                    <option value="🇮🇹 ایتالیا|68.183.6">🇮🇹 ایتالیا</option>
+                    <option value="🇷🇺 روسیه|68.183.7">🇷🇺 روسیه</option>
+                    <option value="🇦🇪 امارات|68.183.8">🇦🇪 امارات</option>
+                    <option value="🇦🇲 ارمنستان|68.183.9">🇦🇲 ارمنستان</option>
+                    <option value="🇨🇭 سوئد|68.183.10">🇨🇭 سوئد</option>
+                    <option value="🇳🇱 هلند|68.183.11" selected>🇳🇱 هلند</option>
+                    <option value="🇫🇮 فنلاند|68.183.12">🇫🇮 فنلاند</option>
+                    <option value="🇱🇻 لتونی|68.183.13">🇱🇻 لتونی</option>
+                    <option value="🇳🇬 نیجریه|68.183.14">🇳🇬 نیجریه</option>
+                    <option value="🇪🇬 مصر|68.183.15">🇪🇬 مصر</option>
+                    <option value="🇨🇿 جمهوری چک|68.183.16">🇨🇿 جمهوری چک</option>
+                    <option value="🇵🇱 پولند|68.183.17">🇵🇱 پولند</option>
+                    <option value="🇫🇷 فرانسه|68.183.18">🇫🇷 فرانسه</option>
+                </select>
+
+                <!-- Settings Row -->
+                <div class="settings-row" style="margin-top:5px;">
+                    <div>
+                        <label>حجم (GB)</label>
+                        <input type="number" id="volumeLimit" value="50" min="1" style="margin-bottom:0;">
+                    </div>
+                    <div>
+                        <label>روز</label>
+                        <input type="number" id="daysLimit" value="7" min="1" style="margin-bottom:0;">
+                    </div>
+                    <div>
+                        <label>کاربر</label>
+                        <input type="text" id="userName" value="Gamer" style="margin-bottom:0;">
+                    </div>
+                </div>
+
+                <!-- Toggles -->
+                <div style="display:flex; gap:20px; margin:15px 0; flex-wrap:wrap;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="color:#8899bb; font-size:0.85rem;">اتصال به هاست</span>
+                        <div class="toggle-switch active" id="hostToggle" onclick="toggleSwitch(this)"></div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="color:#8899bb; font-size:0.85rem;">اتصال به تانل</span>
+                        <div class="toggle-switch active" id="tunnelToggle" onclick="toggleSwitch(this)"></div>
+                    </div>
+                </div>
+
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="generateConfig()">🔥 تولید کانفینگ</button>
+                    <button class="btn btn-success" onclick="downloadConfig()">📥 دانلود</button>
+                </div>
+
+                <!-- Config Output -->
+                <div class="config-output" id="configOutput">
+                    <button class="copy-btn" onclick="copyConfig()">📋 کپی</button>
+                    <pre id="wgconfig">[Interface]
+PrivateKey = 
+Address = 
+DNS = 
+# Name: 
+# Region: 
+# VIP: Active</pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div>
+            <!-- History -->
+            <div class="card">
+                <div class="card-title">📜 هیستوری <span>| History</span></div>
+                <div style="max-height:400px; overflow:auto;">
+                    <table class="history-table" id="historyTable">
+                        <thead>
+                            <tr><th>نام</th><th>کشور</th><th>وضعیت</th><th>عملیات</th></tr>
+                        </thead>
+                        <tbody id="historyBody">
+                            <!-- Rows will be added by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Info -->
+            <div class="card" style="margin-top:20px;">
+                <div class="card-title">📡 اطلاعات سرور <span>| Server Info</span></div>
+                <div style="color:#8899bb; font-size:0.85rem; line-height:2;">
+                    <div>🟢 پینگ: <span style="color:#00ffc8;">12ms</span> (بهینه برای بازی)</div>
+                    <div>🌐 پروتکل: WireGuard (IPv4)</div>
+                    <div>🔐 رمزنگاری: ChaCha20-Poly1305</div>
+                    <div>📦 کانکشن‌های فعال: <span style="color:#00ffc8;">0</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ===== LOGIN =====
+    const PASSWORD = 'ADMIN';
+
+    function checkLogin() {
+        const input = document.getElementById('loginInput');
+        const error = document.getElementById('loginError');
+        if (input.value === PASSWORD) {
+            document.getElementById('loginOverlay').classList.add('hidden');
+            document.getElementById('mainPanel').style.display = 'block';
+            error.textContent = '';
+        } else {
+            error.textContent = '❌ رمز اشتباه است!';
+            error.style.animation = 'none';
+            setTimeout(() => error.style.animation = 'shake 0.5s ease-in-out', 10);
+            input.value = '';
+            input.focus();
+        }
+    }
+
+    document.getElementById('loginInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') checkLogin();
+    });
+
+    function logout() {
+        document.getElementById('loginOverlay').classList.remove('hidden');
+        document.getElementById('mainPanel').style.display = 'none';
+        document.getElementById('loginInput').value = '';
+        document.getElementById('loginError').textContent = '';
+    }
+
+    // ===== TOGGLE =====
+    function toggleSwitch(el) {
+        el.classList.toggle('active');
+    }
+
+    // ===== GENERATE CONFIG =====
+    function generateConfig() {
+        const name = document.getElementById('configName').value.trim() || 'MyConfig';
+        const countryRaw = document.getElementById('countrySelect').value;
+        const [countryFlag, countryName, ipBase] = countryRaw.split('|');
+        const volume = document.getElementById('volumeLimit').value || '50';
+        const days = document.getElementById('daysLimit').value || '7';
+        const user = document.getElementById('userName').value.trim() || 'Gamer';
+
+        // Generate valid WireGuard PrivateKey (base64, 32 bytes)
+        const privateKey = generateWireGuardKey();
+
+        // Generate IPv4 Address (unique per generation)
+        const ipv4 = generateIPv4();
+
+        // DNS: first 1.1.1.1, second based on country with random last octet
+        const dns2 = generateDNS(ipBase);
+
+        const config = `[Interface]
+PrivateKey = ${privateKey}
+Address = ${ipv4}
+DNS = 1.1.1.1, ${dns2}
+# Name: ${name}
+# Region: ${countryName.trim()}
+# VIP: Active
+# User: ${user}
+# Volume: ${volume}GB
+# Days: ${days}`;
+
+        document.getElementById('wgconfig').textContent = config;
+        addHistory(name, countryName.trim());
+    }
+
+    function generateWireGuardKey() {
+        // Generate 32 random bytes and base64 encode
+        const array = new Uint8Array(32);
+        crypto.getRandomValues(array);
+        // WireGuard uses base64 encoding, standard
+        return btoa(String.fromCharCode.apply(null, array));
+    }
+
+    function generateIPv4() {
+        // Generate a random IPv4 in 10.x.x.x or 192.168.x.x range (private)
+        const octets = [
+            10,
+            Math.floor(Math.random() * 255),
+            Math.floor(Math.random() * 255),
+            Math.floor(Math.random() * 254) + 1
+        ];
+        return octets.join('.');
+    }
+
+    function generateDNS(base) {
+        // base looks like "68.183.1" or "68.183.2" etc.
+        const lastOctet = Math.floor(Math.random() * 254) + 1;
+        return `${base}.${lastOctet}`;
+    }
+
+    // ===== DOWNLOAD =====
+    function downloadConfig() {
+        const pre = document.getElementById('wgconfig');
+        const name = document.getElementById('configName').value.trim() || 'MyConfig';
+        const blob = new Blob([pre.textContent], {type: 'application/wireguard'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${name}.conf`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    // ===== COPY =====
+    function copyConfig() {
+        const pre = document.getElementById('wgconfig');
+        navigator.clipboard.writeText(pre.textContent).then(() => {
+            alert('✅ کانفینگ کپی شد!');
+        }).catch(() => {
+            // Fallback
+            const range = document.createRange();
+            range.selectNode(pre);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            alert('✅ کانفینگ کپی شد!');
+        });
+    }
+
+    // ===== HISTORY =====
+    let historyItems = [];
+
+    function addHistory(name, region) {
+        const id = Date.now();
+        historyItems.push({ id, name, region, status: 'active' });
+        renderHistory();
+    }
+
+    function renderHistory() {
+        const tbody = document.getElementById('historyBody');
+        tbody.innerHTML = '';
+        historyItems.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${item.name}</td>
+                <td>${item.region}</td>
+                <td><span class="status ${item.status === 'active' ? 'status-active' : 'status-inactive'}"></span>${item.status === 'active' ? 'فعال' : 'غیرفعال'}</td>
+                <td style="display:flex; gap:5px; flex-wrap:wrap;">
+                    <button class="btn btn-success" style="padding:4px 10px; font-size:0.7rem;" onclick="downloadHistory('${item.id}')">📥</button>
+                    <button class="btn btn-danger" style="padding:4px 10px; font-size:0.7rem;" onclick="toggleHistory('${item.id}')">${item.status === 'active' ? '⏹' : '▶️'}</button>
+                    <button class="btn btn-danger" style="padding:4px 10px; font-size:0.7rem;" onclick="deleteHistory('${item.id}')">🗑</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function downloadHistory(id) {
+        const item = historyItems.find(h => h.id == id);
+        if (!item) return;
+        const config = `[Interface]
+PrivateKey = ${generateWireGuardKey()}
+Address = ${generateIPv4()}
+DNS = 1.1.1.1, ${generateDNS('68.183.1')}
+# Name: ${item.name}
+# Region: ${item.region}
+# VIP: Active`;
+        const blob = new Blob([config], {type: 'application/wireguard'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${item.name}.conf`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function toggleHistory(id) {
+        const item = historyItems.find(h => h.id == id);
+        if (item) {
+            item.status = item.status === 'active' ? 'inactive' : 'active';
+            renderHistory();
+        }
+    }
+
+    function deleteHistory(id) {
+        historyItems = historyItems.filter(h => h.id != id);
+        renderHistory();
+    }
+
+    // ===== INIT =====
+    // Pre-fill with a sample
+    window.addEventListener('load', function() {
+        // Show login by default
+        document.getElementById('loginOverlay').classList.remove('hidden');
+        document.getElementById('mainPanel').style.display = 'none';
+    });
+
+    // Additional: ensure no error on missing fields
+    console.log('🔥 PUBG PING Panel Loaded');
+</script>
+
+</body>
+</html>
